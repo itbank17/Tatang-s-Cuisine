@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Self-Order Kiosk</title>
+    <style>
+        :root {
+            --primary-color: #ff4757;
+            --secondary-color: #2ed573;
+            --dark-color: #2f3542;
+            --light-color: #f1f2f6;
+            --accent-blue: #1e90ff;
+            --warning-orange: #ffa502;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+        }
+
+        body {
+            display: flex;
+            height: 100vh;
+            background-color: var(--light-color);
+            overflow: hidden;
+        }
+
+        /* Menu Section */
+        .menu-container {
+            flex: 2.5;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: transparent;
+            background-image: url('https://www.transparenttextures.com/patterns/food.png');
+        }
+
+        /* Philippine QSR Styled Kiosk Header Banner Background */
+        .header {
+            margin-bottom: 25px;
+            text-align: center;
+            background: linear-gradient(135deg, #d63031 0%, #ff4757 100%);
+            padding: 25px 20px;
+            border-radius: 16px;
+            box-shadow: 0 6px 15px rgba(214, 48, 49, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Subtle abstract background accent circles inside header */
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        /* Brand Logo Container Styling */
+        .brand-logo-container {
+            width: 75px;
+            height: 75px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+            animation: popIn 0.5s ease-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            color: #ffeaa7;
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        /* Three-Column Menu Category Layout */
+        .menu-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .category-column h2 {
+            color: var(--dark-color);
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        /* Enhanced Clean Card Background Menu Elements */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+            border-color: #cbd5e1;
+        }
+
+        .card:active {
+            transform: scale(0.97);
+        }
+
+        .card img {
+            width: 100%;
+            height: 110px;
+            object-fit: cover;
+            border-radius: 12px;
+            background-color: #f1f2f6;
+        }
+
+        .card h3 {
+            margin: 10px 0 4px;
+            color: var(--dark-color);
+            font-size: 0.95rem;
+            font-weight: 700;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.2;
+        }
+
+        .card .price {
+            color: #d63031;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+
+        /* Sidebar / Cart Section */
+        .cart-container {
+            flex: 1;
+            background: white;
+            border-left: 2px solid #e4e7eb;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .cart-container h2 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            border-bottom: 2px solid var(--light-color);
+            padding-bottom: 10px;
+        }
+
+        .cart-items {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--light-color);
+        }
+
+        .cart-item-details p {
+            font-size: 0.85rem;
+            color: #747d8c;
+            margin-top: 2px;
+        }
+
+        .cart-total {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid var(--light-color);
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .checkout-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        /* Modals Main Layout */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        /* Customized Philippine-style Kiosk Background for Payment Selector */
+        #payment-modal .modal-content {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4ecf7 100%);
+            border: 2px solid #cedae8;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative top accent line matching modern touch terminals */
+        #payment-modal .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: linear-gradient(90deg, #0056FF 0%, #00E676 50%, #00B14F 100%);
+        }
+
+        .options-group {
+            margin-bottom: 20px;
+        }
+
+        .options-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .options-group div {
+            display: flex;
+            gap: 10px;
+        }
+
+        .options-group input[type="radio"], .options-group input[type="checkbox"] {
+            display: none;
+        }
+
+        .idx-label {
+            display: block;
+            background: var(--light-color);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            flex: 1;
+            text-align: center;
+        }
+
+        .options-group input:checked + .idx-label {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cancel-btn { background: #ced6e0; color: #2f3542; }
+        .confirm-btn { background: var(--primary-color); color: white; }
+
+        /* Payment Menu Grid */
+        .payment-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 18px;
+            margin-bottom: 22px;
+        }
+
+        /* Button Wrapper containing edge-to-edge branding vectors */
+        .pay-option-btn {
+            border: none;
+            background: transparent;
+            padding: 0;
+            cursor: pointer;
+            border-radius: 14px;
+            overflow: hidden;
+            height: 95px;
+            display: flex;
+            box-shadow: 0 5px 12px rgba(0,0,0,0.15);
+            transition: transform 0.2s, filter 0.2s, box-shadow 0.2s;
+        }
+
+        .pay-option-btn:hover {
+            filter: brightness(0.95);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+        }
+
+        .pay-option-btn:active {
+            transform: scale(0.96);
+        }
+
+        .pay-option-btn svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* QR Code Modal Styling */
+        .qr-container {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .qr-image {
+            width: 200px;
+            height: 200px;
+            margin: 15px auto;
+            display: block;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+        /* Loading Spinner Animation */
+        .spinner {
+            border: 4px solid var(--light-color);
+            border-top: 4px solid var(--accent-blue);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 15px auto 0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Receipt Text Design */
+        .receipt-box {
+            background: #fafafa;
+            border: 1px dashed #ccc;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 0.95rem;
+            text-align: left;
+            white-space: pre-wrap;
+        }
+        /* ... [Keep all existing CSS from your original code] ... */
+
+        /* NEW: Start Screen Styles */
+        #start-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRCsljZVPoDfFTrl7udxPipwNRLVoRULG3Bgc1vOEOihQ&s=10'), linear-gradient(135deg, #d63031 0%, #ff4757 100%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            cursor: pointer;
+            text-align: center;
+        }
+        #start-screen h1 { font-size: 4rem; margin-bottom: 20px; }
+        #start-screen p { font-size: 1.5rem; background: rgba(0,0,0,0.2); padding: 15px 30px; border-radius: 50px; }
+    </style>
+</head>
+<body>
+
+    <!-- Left Side: Menu Grid -->
+    <div class="menu-container">
+        <div class="header">
+            <div class="brand-logo-container">
+                <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="46" fill="#ffffff"/>
+                    <circle cx="50" cy="50" r="40" fill="#fff9e6"/>
+                    <path d="M38 46 C32 46, 30 36, 38 32 C38 24, 62 24, 62 32 C70 36, 68 46, 62 46 Z" fill="#ff4757"/>
+                    <rect x="38" y="44" width="24" height="6" rx="2" fill="#e82135"/>
+                    <path d="M25 64 L75 64 Q80 64 78 68 L72 74 Q70 76 65 76 L35 76 Q30 76 28 74 L22 68 Q20 64 25 64 Z" fill="#ffa502"/>
+                    <path d="M42 68 Q50 72 58 68" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="40" cy="60" r="2.5" fill="#2f3542"/>
+                    <circle cx="60" cy="60" r="2.5" fill="#2f3542"/>
+                </svg>
+            </div>
+             </body>
+        </html>
+
+            <!-- NEW: Start Screen Overlay -->
+    <div id="start-screen" onclick="hideStartScreen()">
+
+        <h1>Welcome!</h1>
+        <p>Touch anywhere to start your order</p>
+    </div>
+
+    <!-- ... [Keep your existing HTML structure from here onwards] ... -->
+    <!-- Left Side: Menu Grid -->
+    <div class="menu-container">
+        <!-- ... -->
+    </div>
+
+    <!-- ... [Rest of your body HTML] ... -->
+
+    <script>
+        // NEW: Function to remove start screen
+        function hideStartScreen() {
+            document.getElementById('start-screen').style.display = 'none';
+        }
+
+        // ... [Keep all your existing JavaScript from your original code] ...
+    </script>
+</body>
+</html>
+            <h1>Welcome to Tatangs Cuisine</h1>
+            <p>Tap an item to customize and add to order</p>
+        </div>
+        </body>
+</html>
+
+        <!-- Divided Menu Container (3 Columns) -->
+        <div class="menu-sections">
+            <!-- Main Dishes Column -->
+            <div class="category-column">
+                <h2>Dishes</h2>
+                <div class="grid" id="mains-grid"></div>
+            </div>
+
+            <!-- Desserts Column -->
+            <div class="category-column">
+                <h2>Desserts</h2>
+                <div class="grid" id="desserts-grid"></div>
+            </div>
+
+            <!-- Drinks Column -->
+            <div class="category-column">
+                <h2>Drinks</h2>
+                <div class="grid" id="drinks-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Live Cart Summary -->
+    <div class="cart-container">
+        <h2>Your Order</h2>
+        <div class="cart-items" id="cart-items"></div>
+        <div class="cart-total">
+            <span>Total:</span>
+            <span id="total-price">₱0.00</span>
+        </div>
+        <button class="checkout-btn" onclick="openPaymentModal()">Place Order</button>
+    </div>
+
+    <!-- 1. Customization Popup Menu -->
+    <div class="modal" id="custom-modal">
+        <div class="modal-content">
+            <h2 id="modal-item-name">Customize Item</h2>
+            
+            <div class="options-group">
+                <label>Select Size</label>
+                <div>
+                    <input type="radio" id="size-s" name="size" value="Regular" checked>
+                    <label class="idx-label" for="size-s">Regular</label>
+                    
+                    <input type="radio" id="size-l" name="size" value="Large">
+                    <label class="idx-label" for="size-l">Large (+₱40.00)</label>
+                </div>
+            </div>
+
+            <div class="options-group">
+                <label id="addon-title">Add-ons</label>
+                <div>
+                    <input type="checkbox" id="add-1" class="addon" value="Extra Cheese" data-price="20.00">
+                    <label class="idx-label" for="add-1" id="addon-1-label">Cheese (+₱20.00)</label>
+                    
+                    <input type="checkbox" id="add-2" class="addon" value="Extra Sauce" data-price="10.00">
+                    <label class="idx-label" for="add-2" id="addon-2-label">Sauce (+₱10.00)</label>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="confirm-btn" onclick="addToCart()">Add to Order</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Payment Method Selector Modal -->
+    <div class="modal" id="payment-modal">
+        <div class="modal-content">
+            <h2 style="color: #1e272e; font-weight: 800; margin-top: 5px;">Select Payment Method</h2>
+            <p style="text-align: center; color: #57606f; font-weight: 600; font-size: 1.05rem;" id="payment-modal-total">Total Amount: ₱0.00</p>
+            
+            <div class="payment-grid">
+                <button class="pay-option-btn" onclick="showQrModal('GCash')">
+                    <svg viewBox="0 0 180 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="gcashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#0041E7"/>
+                                <stop offset="100%" stop-color="#0062FF"/>
+                            </linearGradient>
+                        </defs>
+                        <rect width="180" height="95" fill="url(#gcashGrad)"/>
+                        <circle cx="165" cy="20" r="35" fill="white" opacity="0.1"/>
+                        <circle cx="15" cy="85" r="20" fill="white" opacity="0.08"/>
+                        <text x="50%" y="42" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="26" letter-spacing="0.3">gcash</text>
+                        <text x="50%" y="68" dominant-baseline="middle" text-anchor="middle" fill="#E1EEFF" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="10" letter-spacing="0.5">SCAN TO PAY VIA QR</text>
+                    </svg>
+                </button>
+
+                <button class="pay-option-btn" onclick="showQrModal('Maya')">
+                    <svg viewBox="0 0 180 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="180" height="95" fill="#00E676"/>
+                        <path d="M130 -10 L210 35 L160 110 Z" fill="#00C853" opacity="0.4"/>
+                        <path d="M150 -20 L230 25 L180 100 Z" fill="#B9F6CA" opacity="0.3"/>
+                        <text x="50%" y="42" dominant-baseline="middle" text-anchor="middle" fill="#002E17" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="26" letter-spacing="0.3">maya</text>
+                        <text x="50%" y="68" dominant-baseline="middle" text-anchor="middle" fill="#004D23" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="10" letter-spacing="0.5">PAY WITH WALLET APP</text>
+                    </svg>
+                </button>
+
+                <button class="pay-option-btn" onclick="showQrModal('GrabPay')">
+                    <svg viewBox="0 0 180 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="180" height="95" fill="#00B14F"/>
+                        <path d="M-30 30 Q50 65 210 15" stroke="#00D05C" stroke-width="10" fill="none" opacity="0.5"/>
+                        <path d="M-20 50 Q60 85 220 35" stroke="#009643" stroke-width="6" fill="none" opacity="0.6"/>
+                        <text x="50%" y="42" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="'Segoe UI', sans-serif" font-weight="900" font-style="italic" font-size="25" letter-spacing="-0.5">GrabPay</text>
+                        <text x="50%" y="68" dominant-baseline="middle" text-anchor="middle" fill="#E2FFE7" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="10" letter-spacing="0.5">EARN GRABREWARDS</text>
+                    </svg>
+                </button>
+
+                <button class="pay-option-btn" onclick="showQrModal('Credit Card')">
+                    <svg viewBox="0 0 180 95" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="180" height="95" fill="#2C3A47"/>
+                        <circle cx="148" cy="72" r="16" fill="#FF5E57" opacity="0.85"/>
+                        <circle cx="162" cy="72" r="16" fill="#FFA502" opacity="0.85"/>
+                        <rect x="15" y="14" width="20" height="15" rx="3" fill="#FED330"/>
+                        <line x1="15" y1="21" x2="35" y2="21" stroke="#2C3A47" stroke-width="1"/>
+                        <line x1="25" y1="14" x2="25" y2="29" stroke="#2C3A47" stroke-width="1"/>
+                        <text x="42" y="25" fill="#D1D8E0" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="11" letter-spacing="0.5">BancNet</text>
+                        <text x="50%" y="52" dominant-baseline="middle" text-anchor="middle" fill="white" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="15" letter-spacing="0.2">CREDIT / DEBIT</text>
+                        <text x="15" y="78" fill="#A5B1C2" font-family="'Segoe UI', sans-serif" font-weight="bold" font-size="9" letter-spacing="0.3">VISA / MASTERCARD / JCB</text>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-actions">
+                <button class="cancel-btn" style="width: 100%; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" onclick="closePaymentModal()">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Dynamic Scan to Pay QR Code Modal Overlay -->
+    <div class="modal" id="qr-modal">
+        <div class="modal-content">
+            <h2 id="qr-title">Scan to Pay</h2>
+            
+            <div id="qr-scanning-area" class="qr-container">
+                <p id="qr-amount-text" style="font-weight: bold; color: var(--primary-color); font-size: 1.2rem;"></p>
+                <img id="qr-graphic" class="qr-image" src="" alt="QR Code">
+                <p style="font-size: 0.9rem; color: #747d8c;">Please scan the QR code with your mobile app.</p>
+                <div class="spinner"></div>
+                <p id="qr-timer-text" style="font-size: 0.85rem; color: #1e90ff; margin-top: 10px; font-weight: bold;">Waiting for signature... (10s)</p>
+                
+                <button class="checkout-btn" style="margin-top: 15px; background: var(--secondary-color);" onclick="checkPaymentStatus()">Simulate Scan Done</button>
+            </div>
+
+            <div id="qr-failure-area" class="qr-container" style="display: none; padding: 20px 0;">
+                <h3 style="color: var(--primary-color); font-size: 1.4rem; margin-bottom: 10px;">❌ Payment Failed</h3>
+                <p style="color: #747d8c; font-size: 0.95rem; margin-bottom: 20px;">Session timed out. The system did not detect a valid scan registration within 10 seconds.</p>
+                <div class="modal-actions">
+                    <button class="cancel-btn" style="width: 100%;" onclick="closeQrModal(); openPaymentModal();">Try Another Method</button>
+                </div>
+            </div>
+
+            <div id="qr-balance-error-area" class="qr-container" style="display: none; padding: 20px 0;">
+                <h3 style="color: var(--warning-orange); font-size: 1.4rem; margin-bottom: 10px;">⚠ Insufficient Balance</h3>
+                <p id="balance-error-text" style="color: #747d8c; font-size: 0.95rem; margin-bottom: 20px;">Your transaction was declined due to insufficient funds.</p>
+                <div class="modal-actions">
+                    <button class="confirm-btn" style="width: 100%; background: var(--accent-blue);" onclick="closeQrModal(); openPaymentModal();">Select Other Payment Method</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Final Success Receipt Modal -->
+    <div class="modal" id="success-modal">
+        <div class="modal-content" style="text-align: center;">
+            <h2 style="color: var(--secondary-color);">✔ Payment Successful</h2>
+            <p>Thank you for your purchase! Your receipt has been printed below.</p>
+            
+            <div class="receipt-box" id="receipt-details"></div>
+
+            <button class="checkout-btn" style="background: var(--dark-color);" onclick="closeSuccessModal()">Done & Clear Screen</button>
+        </div>
+    </div>
+
+    <script>
+        // Menu Databases Divided into 3 Clean Segments
+        const mainItems = [
+            { id: 1, name: "Sizzling Tofu", price: 120.00, img: "https://amiablefoods.com/wp-content/uploads/ingredients-sizzling-hero2-768x1024.jpg" },
+            { id: 2, name: "Buttered Garlic Chicken", price: 65.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT7unU8nuF-Wekm2lC_OfZsv5gxrmtuyhlCqd0zYWTuBQ&s=10" },
+            { id: 3, name: "Chicken Adobo", price: 145.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTMRXkY46WKbEtykxXE9WjMGGxdGcLHPIc471vNEaRiBA&s=10" },
+            { id: 4, name: "Sweet and Sour Tilapia", price: 45.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpNzRWugXH8ZjcWQKseP2XmFlxMrVsv0RxJVABOR_OlA&s=10" },
+            { id: 5, name: "Pininyahang Manok", price: 95.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSQsdasabzLoLBUB-LzcBNYRbzLO-gKxWlppsQ7G9nG5g&s=10" },
+            { id: 6, name: "Tinolang Manok", price: 150.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcToFKZkjU51Db4TDHVMTM-TbOhhyEwUYTpFAVZW_iuMiA&s=10" },
+            { id: 7, name: "Sinigang na Baboy", price: 110.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIvg6LZTjXqFtYU92iHRx8DDeQNzKvR0WHAdWfaoRseQ&s=10" },
+            { id: 8, name: "Sinigang na Bangus", price: 85.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYxCWVjYMUFXEq34-DsGatLKyvaaIYPGVWksh5WagEKA&s=10" },
+            { id: 9, name: "Pork Steak", price: 75.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWEC-5ZAKZLv1ce4wRmuJC1vQb2Fq_mWxDAxP3VxO8Ng&s=10" },
+            { id: 10, name: "Sweet Spaghetti", price: 135.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQltvACrVeyokI6WUR6GYC_oFLxqdT0wcyUnf9O7B2O_Q&s=10" }
+        ];
+
+        const dessertItems = [
+            { id: 11, name: "Halo-Halo Special", price: 95.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSZ72jLtxvFb-_qjNV6rDxhVtAM3laNasnSKvzXXJLIQ&s=10" }, 
+            { id: 12, name: "Leche Flan", price: 60.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjSHAnF3vss7c-Tc2j_zorC2iPe6LsK-k7X8TQyVHMLw&s=10" },
+            { id: 13, name: "Mango Float", price: 75.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRF8DozFlgOAOMZCcRZK22XFBthfLzEF8nUvJ6-0dND-Q&s=10" },
+            { id: 14, name: "Ube Ice Cream Sundae", price: 50.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5f5OUJg6iRNvbQR6fMlOTMA62P_1I6SfCGhbmWEyj_Q&s=10" }
+        ];
+
+        const drinkItems = [
+            { id: 15, name: "Sprite", price: 85.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBMw42H-aQKUtteDhpn4OLKv-Xq2e8AFRwjwqmk8l9xQ&s=10" },
+            { id: 16, name: "Royal", price: 45.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8DuJkY5k3lTJeptiCG6qAGYETSAo5lckIbohohO9CVg&s=10" },
+            { id: 17, name: "Absolute", price: 50.00, img: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQt9u-TlldmF4XquAEcCCf8dhIJH9GGC4Tb8w5JYbzfVQ&s=10" },
+            { id: 18, name: "Coca-Cola Regular", price: 40.00, img: "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=400&auto=format&fit=crop&q=60" }
+        ];
+
+        let cart = [];
+        let currentItem = null;
+        let cartTotalAmount = 0;
+        let countdownInterval = null;
+        let selectedPaymentMethod = "";
+
+        // Helper to generate dynamic menu components
+        function renderCategoryGrid(items, targetContainerId, type) {
+            const container = document.getElementById(targetContainerId);
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openModal(item, type);
+                card.innerHTML = `
+                    <img src="${item.img}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                    <p class="price">₱${item.price.toFixed(2)}</p>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Initialize lists separately
+        renderCategoryGrid(mainItems, 'mains-grid', 'food');
+        renderCategoryGrid(dessertItems, 'desserts-grid', 'food');
+        renderCategoryGrid(drinkItems, 'drinks-grid', 'drink');
+
+        // Customization Modal Logic with context sensitive add-ons
+        function openModal(item, type) {
+            currentItem = item;
+            document.getElementById('modal-item-name').innerText = `Customize ${item.name}`;
+            
+            const add1 = document.getElementById('add-1');
+            const add2 = document.getElementById('add-2');
+            const lbl1 = document.getElementById('addon-1-label');
+            const lbl2 = document.getElementById('addon-2-label');
+
+            if (type === 'drink') {
+                document.getElementById('addon-title').innerText = "Beverage Options";
+                add1.value = "Extra Pearl / Boba";
+                add1.dataset.price = "20.00";
+                lbl1.innerText = "Pearl / Boba (+₱20.00)";
+                
+                add2.value = "Extra Ice";
+                add2.dataset.price = "5.00";
+                lbl2.innerText = "Extra Ice (+₱5.00)";
+            } else {
+                document.getElementById('addon-title').innerText = "Add-ons";
+                add1.value = "Extra Cheese";
+                add1.dataset.price = "20.00";
+                lbl1.innerText = "Cheese (+₱20.00)";
+                
+                add2.value = "Extra Sauce";
+                add2.dataset.price = "10.00";
+                lbl2.innerText = "Sauce (+₱10.00)";
+            }
+
+            document.getElementById('custom-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('size-s').checked = true;
+            document.querySelectorAll('.addon').forEach(cb => cb.checked = false);
+            document.getElementById('custom-modal').style.display = 'none';
+        }
+
+        function addToCart() {
+            const selectedSize = document.querySelector('input[name="size"]:checked').value;
+            let finalPrice = currentItem.price;
+            let modifications = [];
+
+            if (selectedSize === "Large") {
+                finalPrice += 40.00;
+                modifications.push("Large");
+            } else {
+                modifications.push("Regular");
+            }
+
+            document.querySelectorAll('.addon:checked').forEach(addon => {
+                finalPrice += parseFloat(addon.dataset.price);
+                modifications.push(addon.value);
+            });
+
+            cart.push({
+                name: currentItem.name,
+                price: finalPrice,
+                details: modifications.join(', ')
+            });
+
+            updateCartUI();
+            closeModal();
+        }
+
+        function updateCartUI() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            cartTotalAmount = 0;
+
+            cart.forEach((item) => {
+                cartTotalAmount += item.price;
+                const div = document.createElement('div');
+                div.className = 'cart-item';
+                div.innerHTML = `
+                    <div class="cart-item-details">
+                        <strong>${item.name}</strong>
+                        <p>${item.details}</p>
+                    </div>
+                    <span>₱${item.price.toFixed(2)}</span>
+                `;
+                cartItemsContainer.appendChild(div);
+            });
+
+            document.getElementById('total-price').innerText = `₱${cartTotalAmount.toFixed(2)}`;
+        }
+
+        // Payment Modal Navigation
+        function openPaymentModal() {
+            if (cart.length === 0) {
+                alert("Your cart is empty! Please select an item.");
+                return;
+            }
+            document.getElementById('payment-modal-total').innerText = `Total Amount: ₱${cartTotalAmount.toFixed(2)}`;
+            document.getElementById('payment-modal').style.display = 'flex';
+        }
+
+        function closePaymentModal() {
+            document.getElementById('payment-modal').style.display = 'none';
+        }
+
+        // QR Code & Core Simulation Loop
+        function showQrModal(paymentMethod) {
+            closePaymentModal();
+            selectedPaymentMethod = paymentMethod;
+            
+            document.getElementById('qr-scanning-area').style.display = 'block';
+            document.getElementById('qr-failure-area').style.display = 'none';
+            document.getElementById('qr-balance-error-area').style.display = 'none';
+
+            document.getElementById('qr-title').innerText = `Pay with ${paymentMethod}`;
+            document.getElementById('qr-amount-text').innerText = `₱${cartTotalAmount.toFixed(2)}`;
+            
+            const textToEncode = `Pay-${paymentMethod}-Amount-${cartTotalAmount}`;
+            document.getElementById('qr-graphic').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(textToEncode)}`;
+            
+            document.getElementById('qr-modal').style.display = 'flex';
+
+            let timeRemaining = 10;
+            const timerLabel = document.getElementById('qr-timer-text');
+            timerLabel.innerText = `Waiting for signature... (${timeRemaining}s)`;
+
+            countdownInterval = setInterval(() => {
+                timeRemaining--;
+                if (timeRemaining > 0) {
+                    timerLabel.innerText = `Waiting for signature... (${timeRemaining}s)`;
+                } else {
+                    clearInterval(countdownInterval);
+                    triggerScanFailure();
+                }
+            }, 1000);
+        }
+
+        function checkPaymentStatus() {
+            if(countdownInterval) clearInterval(countdownInterval);
+            const isBalanceSufficient = Math.random() > 0.3;
+
+            if (isBalanceSufficient) {
+                closeQrModal();
+                processAndPrintReceipt(selectedPaymentMethod);
+            } else {
+                triggerBalanceFailure();
+            }
+        }
+
+        function triggerBalanceFailure() {
+            document.getElementById('qr-scanning-area').style.display = 'none';
+            document.getElementById('qr-balance-error-area').style.display = 'block';
+            document.getElementById('balance-error-text').innerText = `Your ${selectedPaymentMethod} account does not have enough balance to cover the total of ₱${cartTotalAmount.toFixed(2)}. Please select another payment method.`;
+        }
+
+        function triggerScanFailure() {
+            document.getElementById('qr-scanning-area').style.display = 'none';
+            document.getElementById('qr-failure-area').style.display = 'block';
+        }
+
+        function closeQrModal() {
+            if(countdownInterval) clearInterval(countdownInterval);
+            document.getElementById('qr-modal').style.display = 'none';
+        }
+
+        // Receipt Processing Pipeline
+        function processAndPrintReceipt(methodName) {
+            const orderNum = Math.floor(1000 + Math.random() * 9000);
+            
+            let receiptHTML = `=== STORE RECEIPT ===\n`;
+            receiptHTML += `ORDER NUMBER: #<b>${orderNum}</b>\n`;
+            receiptHTML += `Payment via: ${methodName} (QR Paid)\n`;
+            receiptHTML += `-------------------------\n`;
+            
+            cart.forEach(item => {
+                receiptHTML += `${item.name}\n  (${item.details}) = ₱${item.price.toFixed(2)}\n`;
+            });
+
+            receiptHTML += `-------------------------\n`;
+            receiptHTML += `<b>TOTAL: ₱${cartTotalAmount.toFixed(2)}</b>\n\n`;
+            receiptHTML += `Thank you for coming 😊\n`;
+            receiptHTML += `Please present this screen\nat the counter to pick up!`;
+
+            document.getElementById('receipt-details').innerHTML = receiptHTML;
+            document.getElementById('success-modal').style.display = 'flex';
+            
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        function closeSuccessModal() {
+            cart = [];
+            updateCartUI();
+            document.getElementById('success-modal').style.display = 'none';
+        }
+        // --- Existing variables ---
+    let idleTimer;
+
+    // --- New: Idle/Activity Tracking ---
+    function resetIdleTimer() {
+        // Clear the previous timer whenever there is movement
+        clearTimeout(idleTimer);
+        
+        // If the start screen is NOT visible, start the 10-second countdown
+        if (document.getElementById('start-screen').style.display !== 'flex') {
+            idleTimer = setTimeout(() => {
+                showStartScreen(); // Automatically return to start
+            }, 3000); // 3,000 milliseconds = 3 seconds
+        }
+    }
+
+    // Monitor for any user interaction (mouse move, clicks, etc.)
+    document.addEventListener('mousemove', resetIdleTimer);
+    document.addEventListener('mousedown', resetIdleTimer);
+    document.addEventListener('keypress', resetIdleTimer);
+
+    // --- Updated: Start Screen Functions ---
+    function showStartScreen() {
+        document.getElementById('start-screen').style.display = 'flex';
+        // Clear cart and reset order when returning
+        cart = [];
+        updateCartUI();
+        clearTimeout(idleTimer); // Stop the timer while on start screen
+    }
+
+    function hideStartScreen() {
+        document.getElementById('start-screen').style.display = 'none';
+        resetIdleTimer(); // Begin tracking activity once they start
+    }
+
+    // ... [Keep your existing cart and modal functions here] ...
+    </script>
+</body>
+</html>
